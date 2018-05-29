@@ -28,19 +28,19 @@ type AWSConfigs struct {
 }
 
 // GetName returns the provider's name
-func (o *AWS) GetName() string {
+func (a *AWS) GetName() string {
 	return "AWS"
 }
 
 // Unseal unseals a secret from the backend and add it to the config file
-func (o *AWS) Unseal(cred string) (err error) {
+func (a *AWS) Unseal(cred string) (err error) {
 	var secret AWSConfig
-	err = o.backend.GetSecret(o.inputPath+"/"+cred, &secret)
+	err = a.backend.GetSecret(a.inputPath+"/"+cred, &secret)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve credentials: %s", err)
 	}
 
-	err = o.writeSecret(cred, secret)
+	err = a.writeSecret(cred, secret)
 	if err != nil {
 		return fmt.Errorf("failed to store credentials: %s", err)
 	}
@@ -48,7 +48,7 @@ func (o *AWS) Unseal(cred string) (err error) {
 	return
 }
 
-func (o *AWS) writeSecret(name string, config AWSConfig) (err error) {
+func (a *AWS) writeSecret(name string, config AWSConfig) (err error) {
 	aug, err := augeas.New("/", "", augeas.NoModlAutoload)
 	defer aug.Close()
 	if err != nil {
@@ -57,11 +57,11 @@ func (o *AWS) writeSecret(name string, config AWSConfig) (err error) {
 
 	n := narcissus.New(&aug)
 	configs := AWSConfigs{
-		augeasFile: o.outputPath,
-		augeasPath: "/files" + o.outputPath,
+		augeasFile: a.outputPath,
+		augeasPath: "/files" + a.outputPath,
 	}
 	configs.Configs = make(map[string]AWSConfig)
-	configs.Configs[o.outputKeyPrefix+name] = config
+	configs.Configs[a.outputKeyPrefix+name] = config
 
 	err = n.Write(&configs)
 	if err != nil {
